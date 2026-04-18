@@ -167,12 +167,11 @@ onMounted(async () => {
             <span class="terminal-title">MaratonAR.sh</span>
           </div>
           <div class="terminal-body">
-            <p class="line l1">
-              <span class="prompt">$</span>
-              <span class="cmd-run">./fetch_botton</span>
-              <span class="param">--id=</span><span class="num">{{ activeTargetIndex }}</span>
-            </p>
-            <br>
+<!--            <p class="line l1">-->
+<!--              <span class="prompt">$</span>-->
+<!--              <span class="cmd-run">./fetch_botton</span>-->
+<!--              <span class="param">&#45;&#45;id=</span><span class="num">{{ activeTargetIndex }}</span>-->
+<!--            </p>-->
             <p class="line l2 name-highlight">{{ bottonsData[activeTargetIndex].nome }}</p>
             <p class="line l3 sep">─────────────────────────────</p>
 
@@ -183,11 +182,11 @@ onMounted(async () => {
               <span class="lbl">Local:</span><span class="val">{{ bottonsData[activeTargetIndex].local }}</span>
             </p>
             <p v-if="bottonsData[activeTargetIndex].fraseEspecial" class="line l7 frase-bloco">
-              {{ bottonsData[activeTargetIndex].fraseEspecial }}
+              {{ bottonsData[activeTargetIndex].fraseEspecial }} <span class="cursor">▮</span>
             </p>
 
-            <p class="line l8 sep">─────────────────────────────</p>
-            <p class="line l9 blink-line"><span class="cursor">▮</span></p>
+<!--            <p class="line l8 sep">─────────────────────────────</p>-->
+<!--            <p class="line l9 blink-line"><span class="cursor">▮</span></p>-->
           </div>
           <button class="close-btn" @click="markerFound = false">✕ FECHAR TERMINAL</button>
         </div>
@@ -282,9 +281,9 @@ onMounted(async () => {
 .cmd-run { color: #A6E22E; }
 .param { color: #66D9EF; }
 .num { color: #AE81FF; }
-.name-highlight { color: #E6DB74; font-weight: bold; font-size: 1.1em; }
+.name-highlight { color: #E6DB74; font-weight: bold; font-size: 1.3rem}
 
-.sep { opacity: 0.2; margin: 12px 0; color: #75715E; }
+.sep { opacity: 0.2; margin: 0px; color: #75715E; }
 .lbl { color: #FD971F; margin-right: 12px; font-weight: bold; }
 .val { color: #E6DB74; }
 
