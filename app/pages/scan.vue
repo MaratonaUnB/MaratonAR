@@ -4,6 +4,7 @@ import { computed, ref, onMounted, onUnmounted } from 'vue'
 const isLoaded = ref(false)
 const markerFound = ref(false)
 const activeTargetIndex = ref<number | null>(null)
+const lastTargetIndex = ref<number>(1)
 let hideTimer: ReturnType<typeof setTimeout> | null = null
 
 const bottonsData = [
@@ -31,6 +32,8 @@ const currentTarget = computed(() => {
   return bottonsData[activeTargetIndex.value] ?? null
 })
 
+const isScanning = computed(() => isLoaded.value && !markerFound.value)
+
 // Função de Teste para abrir a UI sem câmera
 const simulateDetection = () => {
   if (!markerFound.value) {
@@ -43,6 +46,24 @@ const simulateDetection = () => {
 }
 
 const goBack = () => navigateTo('/')
+
+const openTerminal = () => {
+  if (hideTimer) {
+    clearTimeout(hideTimer)
+    hideTimer = null
+  }
+  activeTargetIndex.value = lastTargetIndex.value
+  markerFound.value = true
+}
+
+const closeTerminal = () => {
+  if (hideTimer) {
+    clearTimeout(hideTimer)
+    hideTimer = null
+  }
+  markerFound.value = false
+  activeTargetIndex.value = null
+}
 
 const cleanupAR = () => {
   if (hideTimer) { clearTimeout(hideTimer); hideTimer = null }
@@ -87,6 +108,7 @@ onMounted(async () => {
           this.el.addEventListener('targetFound', () => {
             if (hideTimer) { clearTimeout(hideTimer); hideTimer = null }
             activeTargetIndex.value = this.data.index
+            lastTargetIndex.value = this.data.index
             markerFound.value = true
           })
           this.el.addEventListener('targetLost', () => {
@@ -158,6 +180,7 @@ onMounted(async () => {
     </div>
 
     <button class="btn-back" @click="goBack">← Voltar</button>
+    <button v-if="isScanning && !currentTarget" class="btn-open-terminal" @click="openTerminal">Abrir Terminal</button>
 
     <!--    <button class="btn-test" @click="simulateDetection">-->
     <!--      {{ markerFound ? 'FECHAR TESTE' : 'TESTAR UI' }}-->
@@ -195,7 +218,7 @@ onMounted(async () => {
             <!--            <p class="line l8 sep">─────────────────────────────</p>-->
             <!--            <p class="line l9 blink-line"><span class="cursor">▮</span></p>-->
           </div>
-          <button class="close-btn" @click="markerFound = false">✕ FECHAR TERMINAL</button>
+          <button class="close-btn" @click="closeTerminal">✕ FECHAR TERMINAL</button>
         </div>
       </div>
     </Transition>
@@ -312,6 +335,28 @@ onMounted(async () => {
   cursor: pointer;
   font-family: 'JetBrains Mono', monospace;
   box-shadow: 0 4px 15px rgba(249, 38, 114, 0.3);
+}
+
+.btn-open-terminal {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 1000;
+  background: rgba(39, 40, 34, 0.9);
+  border: 1px solid #A6E22E;
+  color: #A6E22E;
+  padding: 10px 18px;
+  border-radius: 99px;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.btn-open-terminal:hover {
+  background: #A6E22E;
+  color: #1a1a1a;
 }
 
 .event-overlay {
