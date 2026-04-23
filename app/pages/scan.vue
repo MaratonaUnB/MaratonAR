@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 
 const isLoaded = ref(false)
 const markerFound = ref(false)
@@ -22,6 +22,14 @@ const bottonsData = [
     imagem: '/logo.png'
   }
 ]
+
+const currentTarget = computed(() => {
+  if (activeTargetIndex.value === null) {
+    return null
+  }
+
+  return bottonsData[activeTargetIndex.value] ?? null
+})
 
 // Função de Teste para abrir a UI sem câmera
 const simulateDetection = () => {
@@ -113,30 +121,29 @@ onMounted(async () => {
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 
     <ClientOnly>
-      <a-scene
-        v-if="sceneReady"
+      <a-scene v-if="sceneReady"
         mindar-image="imageTargetSrc: /targets.mind; autoStart: true; uiLoading: no; uiError: no; uiScanning: no;"
-        color-space="sRGB"
-        renderer="colorManagement: true; physicallyCorrectLights: true; alpha: true;"
-        vr-mode-ui="enabled: false"
-        device-orientation-permission-ui="enabled: false"
-        scene-ready
-      >
+        color-space="sRGB" renderer="colorManagement: true; physicallyCorrectLights: true; alpha: true;"
+        vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false" scene-ready>
         <a-assets>
           <img v-for="b in bottonsData" :key="b.id" :id="`img-${b.id}`" :src="b.imagem" crossorigin="anonymous">
         </a-assets>
 
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-        <a-entity v-for="i in [0, 1]" :key="i" :mindar-image-target="`targetIndex: ${i}`" :target-watcher="`index: ${i}`">
-          <a-entity position="0 0.14 0.15" animation="property: rotation; to: 0 360 0; loop: true; dur: 5000; easing: linear">
+        <a-entity v-for="i in [0, 1]" :key="i" :mindar-image-target="`targetIndex: ${i}`"
+          :target-watcher="`index: ${i}`">
+          <a-entity position="0 0.14 0.15"
+            animation="property: rotation; to: 0 360 0; loop: true; dur: 5000; easing: linear">
             <a-circle radius="0.5" :src="`#img-${i}`" position="0 0 0.011"></a-circle>
             <a-circle radius="0.5" :src="`#img-${i}`" position="0 0 -0.011" rotation="0 180 0"></a-circle>
-            <a-cylinder radius="0.5" height="0.02" color="#272822" open-ended="true" rotation="90 0 0" material="metalness: 0.9; roughness: 0.1"></a-cylinder>
+            <a-cylinder radius="0.5" height="0.02" color="#272822" open-ended="true" rotation="90 0 0"
+              material="metalness: 0.9; roughness: 0.1"></a-cylinder>
             <a-cylinder radius="0.502" height="0.005" color="#A6E22E" open-ended="true" rotation="90 0 0"></a-cylinder>
           </a-entity>
 
-          <a-ring position="0 0.14 0" radius-inner="0.65" radius-outer="0.68" color="#A6E22E" material="opacity: 0.2; transparent: true"></a-ring>
+          <a-ring position="0 0.14 0" radius-inner="0.65" radius-outer="0.68" color="#A6E22E"
+            material="opacity: 0.2; transparent: true"></a-ring>
           <a-ring position="0 0.14 0" radius-inner="0.65" radius-outer="0.68" color="#A6E22E" theta-length="100"
             animation="property: rotation; from: 0 0 0; to: 0 0 360; loop: true; dur: 1500; easing: linear"></a-ring>
           <a-ring position="0 0.14 0" radius-inner="0.62" radius-outer="0.63" color="#F92672" opacity="0.4"></a-ring>
@@ -152,13 +159,13 @@ onMounted(async () => {
 
     <button class="btn-back" @click="goBack">← Voltar</button>
 
-<!--    <button class="btn-test" @click="simulateDetection">-->
-<!--      {{ markerFound ? 'FECHAR TESTE' : 'TESTAR UI' }}-->
-<!--    </button>-->
+    <!--    <button class="btn-test" @click="simulateDetection">-->
+    <!--      {{ markerFound ? 'FECHAR TESTE' : 'TESTAR UI' }}-->
+    <!--    </button>-->
 
     <!-- Terminal Card Monokai -->
     <Transition name="slide-up">
-      <div v-if="markerFound && activeTargetIndex !== null" class="event-overlay">
+      <div v-if="currentTarget" class="event-overlay">
         <div class="terminal-card">
           <div class="terminal-bar">
             <span class="dot red"></span>
@@ -167,33 +174,35 @@ onMounted(async () => {
             <span class="terminal-title">MaratonAR.sh</span>
           </div>
           <div class="terminal-body">
-<!--            <p class="line l1">-->
-<!--              <span class="prompt">$</span>-->
-<!--              <span class="cmd-run">./fetch_botton</span>-->
-<!--              <span class="param">&#45;&#45;id=</span><span class="num">{{ activeTargetIndex }}</span>-->
-<!--            </p>-->
-            <p class="line l2 name-highlight">{{ bottonsData[activeTargetIndex].nome }}</p>
+            <!--            <p class="line l1">-->
+            <!--              <span class="prompt">$</span>-->
+            <!--              <span class="cmd-run">./fetch_botton</span>-->
+            <!--              <span class="param">&#45;&#45;id=</span><span class="num">{{ activeTargetIndex }}</span>-->
+            <!--            </p>-->
+            <p class="line l2 name-highlight">{{ currentTarget.nome }}</p>
             <p class="line l3 sep">─────────────────────────────</p>
 
-            <p v-if="bottonsData[activeTargetIndex].data" class="line l4">
-              <span class="lbl">DATA:</span><span class="val">{{ bottonsData[activeTargetIndex].data }}</span>
+            <p v-if="currentTarget.data" class="line l4">
+              <span class="lbl">DATA:</span><span class="val">{{ currentTarget.data }}</span>
             </p>
-            <p v-if="bottonsData[activeTargetIndex].local" class="line l5">
-              <span class="lbl">Local:</span><span class="val">{{ bottonsData[activeTargetIndex].local }}</span>
+            <p v-if="currentTarget.local" class="line l5">
+              <span class="lbl">Local:</span><span class="val">{{ currentTarget.local }}</span>
             </p>
-            <p v-if="bottonsData[activeTargetIndex].fraseEspecial" class="line l7 frase-bloco">
-              {{ bottonsData[activeTargetIndex].fraseEspecial }} <span class="cursor">▮</span>
+            <p v-if="currentTarget.fraseEspecial" class="line l7 frase-bloco">
+              {{ currentTarget.fraseEspecial }} <span class="cursor">▮</span>
             </p>
 
-<!--            <p class="line l8 sep">─────────────────────────────</p>-->
-<!--            <p class="line l9 blink-line"><span class="cursor">▮</span></p>-->
+            <!--            <p class="line l8 sep">─────────────────────────────</p>-->
+            <!--            <p class="line l9 blink-line"><span class="cursor">▮</span></p>-->
           </div>
           <button class="close-btn" @click="markerFound = false">✕ FECHAR TERMINAL</button>
         </div>
       </div>
     </Transition>
 
-    <div v-if="!isLoaded" class="loading"><div class="loader"></div></div>
+    <div v-if="!isLoaded" class="loading">
+      <div class="loader"></div>
+    </div>
   </div>
 </template>
 
@@ -237,25 +246,84 @@ onMounted(async () => {
   position: relative;
 }
 
-.scanner-corners::before, .scanner-corners::after {
+.scanner-corners::before,
+.scanner-corners::after {
   content: '';
   position: absolute;
   width: 40px;
   height: 40px;
   border: 4px solid #A6E22E;
 }
-.scanner-corners::before { top: -2px; left: -2px; border-right: 0; border-bottom: 0; }
-.scanner-corners::after { bottom: -2px; right: -2px; border-left: 0; border-top: 0; }
 
-@keyframes scan-move {
-  0%, 100% { top: 15%; opacity: 0.3; }
-  50% { top: 85%; opacity: 1; }
+.scanner-corners::before {
+  top: -2px;
+  left: -2px;
+  border-right: 0;
+  border-bottom: 0;
 }
 
-.btn-back { position: fixed; top: 24px; left: 24px; z-index: 1000; background: rgba(39, 40, 34, 0.8); border: 1px solid #49483E; color: #F8F8F2; padding: 10px 20px; border-radius: 99px; cursor: pointer; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
-.btn-test { position: fixed; bottom: 30px; right: 30px; z-index: 1000; background: #F92672; color: #fff; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; font-family: 'JetBrains Mono', monospace; box-shadow: 0 4px 15px rgba(249, 38, 114, 0.3); }
+.scanner-corners::after {
+  bottom: -2px;
+  right: -2px;
+  border-left: 0;
+  border-top: 0;
+}
 
-.event-overlay { position: fixed; inset: 0; z-index: 999; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 40px; pointer-events: none; }
+@keyframes scan-move {
+
+  0%,
+  100% {
+    top: 15%;
+    opacity: 0.3;
+  }
+
+  50% {
+    top: 85%;
+    opacity: 1;
+  }
+}
+
+.btn-back {
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  z-index: 1000;
+  background: rgba(39, 40, 34, 0.8);
+  border: 1px solid #49483E;
+  color: #F8F8F2;
+  padding: 10px 20px;
+  border-radius: 99px;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+}
+
+.btn-test {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 1000;
+  background: #F92672;
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  box-shadow: 0 4px 15px rgba(249, 38, 114, 0.3);
+}
+
+.event-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 40px;
+  pointer-events: none;
+}
 
 .terminal-card {
   pointer-events: auto;
@@ -265,70 +333,170 @@ onMounted(async () => {
   border: 1px solid #49483E;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 25px 60px rgba(0,0,0,0.9);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9);
   font-family: 'JetBrains Mono', monospace;
 }
 
-.terminal-bar { background: #1a1a1a; padding: 12px 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #3E3D32; }
-.dot { width: 12px; height: 12px; border-radius: 50%; }
-.dot.red { background: #F92672; }
-.dot.yellow { background: #E6DB74; }
-.dot.green { background: #A6E22E; }
-.terminal-title { font-size: 11px; color: #75715E; margin-left: 8px; text-transform: uppercase; letter-spacing: 1px; }
-
-.terminal-body { padding: 24px; color: #F8F8F2; font-size: 14px; line-height: 1.7; }
-.prompt { color: #F92672; margin-right: 8px; }
-.cmd-run { color: #A6E22E; }
-.param { color: #66D9EF; }
-.num { color: #AE81FF; }
-.name-highlight { color: #E6DB74; font-weight: bold; font-size: 1.3rem}
-
-.sep { opacity: 0.2; margin: 0px; color: #75715E; }
-.lbl { color: #FD971F; margin-right: 12px; font-weight: bold; }
-.val { color: #E6DB74; }
-
-.frase-bloco { margin-top: 18px; border-left: 3px solid #66D9EF; padding-left: 16px; font-style: italic; color: #F8F8F2; }
-
-.cursor { display: inline-block; width: 8px; height: 16px; background: #F8F8F2; animation: blink 1s step-end infinite; vertical-align: middle; }
-@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-
-.close-btn { width: 100%; background: #1a1a1a; border: none; border-top: 1px solid #3E3D32; color: #F92672; padding: 16px; cursor: pointer; font-family: 'JetBrains Mono', monospace; font-weight: bold; font-size: 12px; letter-spacing: 2px; }
-.close-btn:hover { background: #F92672; color: #fff; }
-
-.loading { position: fixed; inset: 0; background: #272822; display: flex; align-items: center; justify-content: center; z-index: 10000; }
-.loader { width: 32px; height: 32px; border: 2px solid #3E3D32; border-top-color: #A6E22E; border-radius: 50%; animation: spin 0.8s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.slide-up-enter-active { transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1); }
-.slide-up-enter-from { transform: translateY(100%) scale(0.95); opacity: 0; }
-</style>
-
-<style>
-html, body {
-  margin: 0 !important;
-  padding: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  overflow: hidden !important;
-  background: #272822 !important;
+.terminal-bar {
+  background: #1a1a1a;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid #3E3D32;
 }
 
-canvas.a-canvas {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  z-index: 1 !important;
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
 }
 
-video {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
-  z-index: 0 !important;
+.dot.red {
+  background: #F92672;
+}
+
+.dot.yellow {
+  background: #E6DB74;
+}
+
+.dot.green {
+  background: #A6E22E;
+}
+
+.terminal-title {
+  font-size: 11px;
+  color: #75715E;
+  margin-left: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.terminal-body {
+  padding: 24px;
+  color: #F8F8F2;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.prompt {
+  color: #F92672;
+  margin-right: 8px;
+}
+
+.cmd-run {
+  color: #A6E22E;
+}
+
+.param {
+  color: #66D9EF;
+}
+
+.num {
+  color: #AE81FF;
+}
+
+.name-highlight {
+  color: #E6DB74;
+  font-weight: bold;
+  font-size: 1.3rem
+}
+
+.sep {
+  opacity: 0.2;
+  margin: 0px;
+  color: #75715E;
+}
+
+.lbl {
+  color: #FD971F;
+  margin-right: 12px;
+  font-weight: bold;
+}
+
+.val {
+  color: #E6DB74;
+}
+
+.frase-bloco {
+  margin-top: 18px;
+  border-left: 3px solid #66D9EF;
+  padding-left: 16px;
+  font-style: italic;
+  color: #F8F8F2;
+}
+
+.cursor {
+  display: inline-block;
+  width: 8px;
+  height: 16px;
+  background: #F8F8F2;
+  animation: blink 1s step-end infinite;
+  vertical-align: middle;
+}
+
+@keyframes blink {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+}
+
+.close-btn {
+  width: 100%;
+  background: #1a1a1a;
+  border: none;
+  border-top: 1px solid #3E3D32;
+  color: #F92672;
+  padding: 16px;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: bold;
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+
+.close-btn:hover {
+  background: #F92672;
+  color: #fff;
+}
+
+.loading {
+  position: fixed;
+  inset: 0;
+  background: #272822;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.loader {
+  width: 32px;
+  height: 32px;
+  border: 2px solid #3E3D32;
+  border-top-color: #A6E22E;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.slide-up-enter-active {
+  transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.slide-up-enter-from {
+  transform: translateY(100%) scale(0.95);
+  opacity: 0;
 }
 </style>
