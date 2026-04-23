@@ -5,6 +5,7 @@ const isLoaded = ref(false)
 const markerFound = ref(false)
 const activeTargetIndex = ref<number | null>(null)
 const lastTargetIndex = ref<number>(1)
+const targetInView = ref(false)
 let hideTimer: ReturnType<typeof setTimeout> | null = null
 
 const bottonsData = [
@@ -33,6 +34,7 @@ const currentTarget = computed(() => {
 })
 
 const isScanning = computed(() => isLoaded.value && !markerFound.value)
+const canOpenTerminal = computed(() => isScanning.value && !currentTarget.value && targetInView.value)
 
 // Função de Teste para abrir a UI sem câmera
 const simulateDetection = () => {
@@ -48,6 +50,9 @@ const simulateDetection = () => {
 const goBack = () => navigateTo('/')
 
 const openTerminal = () => {
+  if (!targetInView.value) {
+    return
+  }
   if (hideTimer) {
     clearTimeout(hideTimer)
     hideTimer = null
@@ -107,11 +112,13 @@ onMounted(async () => {
         init() {
           this.el.addEventListener('targetFound', () => {
             if (hideTimer) { clearTimeout(hideTimer); hideTimer = null }
+            targetInView.value = true
             activeTargetIndex.value = this.data.index
             lastTargetIndex.value = this.data.index
             markerFound.value = true
           })
           this.el.addEventListener('targetLost', () => {
+            targetInView.value = false
             // Aumentei para 5 segundos para o card não sumir tão fácil
             hideTimer = setTimeout(() => {
               markerFound.value = false
@@ -180,7 +187,7 @@ onMounted(async () => {
     </div>
 
     <button class="btn-back" @click="goBack">← Voltar</button>
-    <button v-if="isScanning && !currentTarget" class="btn-open-terminal" @click="openTerminal">Abrir Terminal</button>
+    <button v-if="canOpenTerminal" class="btn-open-terminal" @click="openTerminal">Abrir Terminal</button>
 
     <!--    <button class="btn-test" @click="simulateDetection">-->
     <!--      {{ markerFound ? 'FECHAR TESTE' : 'TESTAR UI' }}-->
